@@ -3,6 +3,8 @@ import cors from 'cors';
 import httpStatus from 'http-status';
 import type { Application, NextFunction, Request, Response } from 'express';
 import express from 'express';
+import router from './app/routes';
+import globalErrorHandler from './app/middlewares/globalErrorHandler';
 
 
 const app: Application = express();
@@ -24,6 +26,10 @@ app.get('/', (req: Request, res: Response) => {
         Message: "M360 ICT API Running..."
     })
 });
+
+app.use('/api/v1', router);
+
+app.use(globalErrorHandler);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     res.status(httpStatus.NOT_FOUND).json({

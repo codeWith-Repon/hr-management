@@ -1,0 +1,33 @@
+import { NextFunction, Request, Response } from "express";
+import httpStatus from "http-status";
+
+const sanitizeError = (error: any) => {
+    if (process.env.NODE_ENV === "production") {
+        return {
+            message: "Database operation failed",
+            errorDetails: null,
+        };
+    }
+    return error;
+};
+
+const globalErrorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+
+    console.log({ err });
+
+    let statusCode = httpStatus.INTERNAL_SERVER_ERROR;
+    let success = false;
+    let message = err.message || "Something went wrong!";
+    let error = err;
+
+    // Sanitize error before sending response
+    const sanitizedError = sanitizeError(error);
+
+    res.status(statusCode).json({
+        success,
+        message,
+        error: sanitizedError
+    })
+};
+
+export default globalErrorHandler;
