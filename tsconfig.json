@@ -1,5 +1,6 @@
 {
   // Visit https://aka.ms/tsconfig to read more about this file
+  "include": ["src/**/*"],
   "compilerOptions": {
     // File Layout
     "rootDir": "./src",
@@ -11,8 +12,8 @@
     "module": "CommonJS",
     "moduleResolution": "node",
     "target": "ESNext",
-    "esModuleInterop": true, 
-    "verbatimModuleSyntax": false, 
+    "esModuleInterop": true,
+    "verbatimModuleSyntax": false,
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -41,6 +42,6 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   }
 }
