@@ -1,12 +1,16 @@
 import { Server } from 'http';
 import app from './app';
 import config from './config';
-
+import { getKnex } from './config/knex';
 
 async function bootstrap() {
     let server: Server;
 
     try {
+
+        const db = getKnex();
+        await db.raw('SELECT 1');
+        console.log('✅ Database connection successful');
 
         server = app.listen(config.port, () => {
             console.log(`🚀 Server is running on http://localhost:${config.port}`);
