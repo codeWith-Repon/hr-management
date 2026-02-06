@@ -9,11 +9,6 @@ export interface IHrUser {
 
 export interface IHRUserResponse extends Omit<IHrUser, "password_hash"> { }
 
-export interface IUserLogin {
-    email: string;
-    password: string;
-}
-
 export interface IHRUserCreateInput {
   name: string;
   email: string;
