@@ -14,5 +14,7 @@ export default {
         expiresIn: process.env.JWT_EXPIRES_IN,
         refreshSecret: process.env.JWT_REFRESH_SECRET,
         refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN
-    }
+    },
+
+    bcryptSaltRounds: process.env.SALT_ROUNDS
 }
