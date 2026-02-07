@@ -1,28 +1,29 @@
 import { Router } from "express";
-import { HrUserController } from "./hrUser.controller";
 import { validateRequest } from "../../middlewares/validateRequest";
 import { HrUserValidation } from "./hrUser.validation";
 import { checkAuth } from "../../middlewares/checkAuth";
+import { hrUserController } from "./hrUser.controller";
 
 const router = Router()
 
-router.get("/", checkAuth(), HrUserController.getAllHrUser)
+router.get("/", checkAuth(), hrUserController.getAllHrUsers)
+
 router.post(
     "/create",
     validateRequest(HrUserValidation.createHrUserSchema),
-    HrUserController.createHrUser
+    hrUserController.createHrUser
 )
-router.get("/me", checkAuth(), HrUserController.getMe)
-router.get("/:email", HrUserController.getUserByEmail)
+router.get("/me", checkAuth(), hrUserController.getMe)
+router.get("/:email", hrUserController.getUserByEmail)
 
 router.patch(
     "/",
     checkAuth(),
     validateRequest(HrUserValidation.updateHrUserSchema),
-    HrUserController.updateHrUser
+    hrUserController.updateHrUser
 )
 
-router.delete("/:email", checkAuth(), HrUserController.deleteHrUser)
+router.delete("/:email", checkAuth(), hrUserController.deleteHrUser)
 
 
 export const HrUserRoutes = router

@@ -5,111 +5,107 @@ import HttpStatus from "http-status";
 import bcrypt from "bcryptjs";
 import config from "../../../config";
 
-const knex = getKnex();
+class HrUserService {
+    private knex = getKnex();
 
-const createHrUser = async (payload: IHRUserCreateInput): Promise<IHRUserResponse> => {
-    const existingUser = await knex("hr_users")
-        .where({ email: payload.email })
-        .first();
-
-    if (existingUser) {
-        throw new ApiError(HttpStatus.CONFLICT, "User already exists");
-    }
-
-    const password_hash = await bcrypt.hash(payload.password, Number(config.bcryptSaltRounds))
-
-    const [newUser] = await knex("hr_users")
-        .insert({
-            name: payload.name,
-            email: payload.email,
-            password_hash
-        })
-        .returning(["id", "name", "email", "created_at", "updated_at"]);
-
-    return newUser;
-}
-
-const getUserByEmail = async (email: string): Promise<IHRUserResponse | null> => {
-    const [user] = await knex("hr_users")
-        .where('email', email)
-        .select("id", "name", "email", "created_at", "updated_at");
-
-    if (!user) {
-        throw new ApiError(HttpStatus.NOT_FOUND, "User not found");
-    }
-
-    return user
-}
-
-const getMe = async (email: string): Promise<IHRUserResponse | null> => {
-    const [user] = await knex("hr_users")
-        .where('email', email)
-        .select("id", "name", "email", "created_at", "updated_at");
-
-    if (!user) {
-        throw new ApiError(HttpStatus.NOT_FOUND, "User not found");
-    }
-
-    return user
-}
-
-const getAllHrUser = async (): Promise<IHRUserResponse[]> => {
-    const users = await knex("hr_users")
-        .select("id", "name", "email", "created_at", "updated_at");
-
-    return users
-}
-
-const updateHrUser = async (email: string, payload: IHRUserCreateInput): Promise<IHRUserResponse | null> => {
-
-    const existingUser = await knex("hr_users")
-        .where({ email: email })
-        .first();
-
-    if (!existingUser) {
-        throw new ApiError(HttpStatus.NOT_FOUND, "User not found!!");
-    }
-
-    if (payload.email) {
-        const user = await knex("hr_users")
+    public async createHrUser(payload: IHRUserCreateInput): Promise<IHRUserResponse> {
+        const existingUser = await this.knex("hr_users")
             .where({ email: payload.email })
             .first();
 
-        if (user) {
-            throw new ApiError(HttpStatus.CONFLICT, "This email already exists. Please use another email.");
+        if (existingUser) {
+            throw new ApiError(HttpStatus.CONFLICT, "User already exists");
         }
+
+        const password_hash = await bcrypt.hash(payload.password, Number(config.bcryptSaltRounds));
+
+        const [newUser] = await this.knex("hr_users")
+            .insert({
+                name: payload.name,
+                email: payload.email,
+                password_hash
+            })
+            .returning(["id", "name", "email", "created_at", "updated_at"]);
+
+        return newUser;
     }
 
-    if (payload.password) {
-        payload.password = await bcrypt.hash(payload.password, Number(config.bcryptSaltRounds))
+    public async getUserByEmail(email: string): Promise<IHRUserResponse> {
+        const user = await this.knex("hr_users")
+            .where({ email })
+            .select("id", "name", "email", "created_at", "updated_at")
+            .first();
+
+        if (!user) {
+            throw new ApiError(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        return user;
     }
 
-    const [user] = await knex("hr_users")
-        .where("email", email)
-        .update({
-            name: payload.name || existingUser.name,
-            email: payload.email || existingUser.email,
-            password_hash: payload.password || existingUser.password_hash
-        })
-        .returning(["id", "name", "email", "created_at", "updated_at"]);
+    public async getAllHrUsers(): Promise<IHRUserResponse[]> {
+        const users = await this.knex("hr_users")
+            .select("id", "name", "email", "created_at", "updated_at")
+            .orderBy("id", "desc");
 
-    return user;
+        return users;
+    }
+
+    public async updateHrUser(email: string, payload: Partial<IHRUserCreateInput>): Promise<IHRUserResponse> {
+        const existingUser = await this.knex("hr_users")
+            .where({ email })
+            .first();
+
+        if (!existingUser) {
+            throw new ApiError(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        // Check if new email already exists
+        if (payload.email && payload.email !== email) {
+            const emailExists = await this.knex("hr_users")
+                .where({ email: payload.email })
+                .first();
+
+            if (emailExists) {
+                throw new ApiError(HttpStatus.CONFLICT, "This email already exists. Please use another email.");
+            }
+        }
+
+        const updateData: any = {
+            updated_at: this.knex.fn.now()
+        };
+
+        if (payload.name) updateData.name = payload.name;
+        if (payload.email) updateData.email = payload.email;
+
+        if (payload.password) {
+            updateData.password_hash = await bcrypt.hash(payload.password, Number(config.bcryptSaltRounds));
+        }
+
+        const [updatedUser] = await this.knex("hr_users")
+            .where({ email })
+            .update(updateData)
+            .returning(["id", "name", "email", "created_at", "updated_at"]);
+
+        if (!updatedUser) {
+            throw new ApiError(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        return updatedUser;
+    }
+
+    public async deleteHrUser(email: string): Promise<IHRUserResponse> {
+        const [deletedUser] = await this.knex("hr_users")
+            .where({ email })
+            .del()
+            .returning(["id", "name", "email", "created_at", "updated_at"]);
+
+        if (!deletedUser) {
+            throw new ApiError(HttpStatus.NOT_FOUND, "User not found");
+        }
+
+        return deletedUser;
+    }
 }
 
-const deleteHrUser = async (email: string): Promise<IHRUserResponse> => {
-    const [user] = await knex("hr_users")
-        .where("email", email)
-        .del()
-        .returning(["id", "name", "email", "created_at", "updated_at"]);
-
-    return user;
-}
-
-export const HrUserService = {
-    createHrUser,
-    getUserByEmail,
-    getMe,
-    getAllHrUser,
-    updateHrUser,
-    deleteHrUser
-}
+export const hrUserService = new HrUserService();
