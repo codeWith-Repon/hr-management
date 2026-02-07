@@ -3,13 +3,14 @@ import { employeeController } from './employee.controller';
 import { checkAuth } from '../../middlewares/checkAuth';
 import { validateRequest } from '../../middlewares/validateRequest';
 import { EmployeeValidation } from './employee.validation';
+import { fileUploader } from '../../utils/fileUploader';
 
 const router = express.Router();
 
 router.post(
     '/',
     checkAuth(),
-    // upload.single('photo'), 
+    fileUploader.upload.single('file'), 
     validateRequest(EmployeeValidation.createEmployeeSchema),
     employeeController.createEmployee
 );

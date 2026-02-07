@@ -3,9 +3,18 @@ import httpStatus from "http-status";
 import catchAsync from "../../../shared/catchAsync";
 import sendResponse from "../../../shared/sendResponse";
 import { employeeService } from "./employee.service";
+import { fileUploader } from "../../utils/fileUploader";
 
 class EmployeeController {
     public createEmployee = catchAsync(async (req: Request, res: Response) => {
+
+        if (req.file) {
+            const cloudinaryResponse = await fileUploader.uploadToCloudinary(req.file);
+
+            if (cloudinaryResponse) {
+                req.body.photo_path = cloudinaryResponse.secure_url
+            }
+        }
 
         const result = await employeeService.createEmployee(req.body);
 
